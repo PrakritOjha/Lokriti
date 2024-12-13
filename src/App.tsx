@@ -129,11 +129,14 @@ const styles = {
   app: {
     minHeight: '100vh',
     backgroundColor: colors.background,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    width: '100%',
   },
   main: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '2rem',
+    width: '90%',
+    maxWidth: '2400px',
   },
   page: {
     backgroundColor: '#fff',

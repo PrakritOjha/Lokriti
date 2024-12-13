@@ -26,6 +26,21 @@ const Navbar: React.FC<NavbarProps> = ({ lang, onLanguageToggle }) => {
   const location = useLocation();
   const t = translations[lang];
 
+  const getLanguageButton = () => {
+    if (lang === 'en') {
+      return (
+        <>
+          🇳🇵 नेपाली
+        </>
+      );
+    }
+    return (
+      <>
+        🇬🇧 English
+      </>
+    );
+  };
+
   return (
     <nav style={styles.nav}>
       <div style={styles.content}>
@@ -74,7 +89,7 @@ const Navbar: React.FC<NavbarProps> = ({ lang, onLanguageToggle }) => {
           onClick={onLanguageToggle} 
           style={styles.langToggle}
         >
-          {lang === 'en' ? 'नेपाली' : 'English'}
+          {getLanguageButton()}
         </button>
       </div>
     </nav>
@@ -83,20 +98,23 @@ const Navbar: React.FC<NavbarProps> = ({ lang, onLanguageToggle }) => {
 
 const styles = {
   nav: {
-    backgroundColor: '#fff',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    padding: '1rem 0',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+    padding: '1rem',
     position: 'sticky' as const,
     top: 0,
     zIndex: 1000,
+    width: '100%',
   },
   content: {
-    maxWidth: '1200px',
+    width: '90%',
     margin: '0 auto',
-    padding: '0 2rem',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+    maxWidth: '2400px',
   },
   leftSection: {
     display: 'flex',
@@ -104,9 +122,10 @@ const styles = {
     gap: '3rem',
   },
   logo: {
-    fontSize: '1.5rem',
+    fontSize: '1.75rem',
     fontWeight: 'bold',
     color: colors.primary,
+    textDecoration: 'none',
   },
   links: {
     display: 'flex',
@@ -121,20 +140,24 @@ const styles = {
     transition: 'all 0.2s',
   },
   activeLink: {
-    backgroundColor: `${colors.primary}10`,
+    backgroundColor: `${colors.primary}15`,
     color: colors.primary,
   },
   langToggle: {
-    padding: '0.5rem 1rem',
-    backgroundColor: colors.primary,
-    color: 'white',
-    border: 'none',
+    padding: '0.5rem 1.25rem',
+    backgroundColor: `${colors.primary}15`,
+    color: colors.primary,
+    border: '1px solid ${colors.primary}30',
     borderRadius: '0.5rem',
     cursor: 'pointer',
     fontWeight: 'bold',
-    transition: 'background-color 0.2s',
+    transition: 'all 0.2s',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
     ':hover': {
-      backgroundColor: colors.accent,
+      backgroundColor: colors.primary,
+      color: 'white',
     }
   },
 } as const;

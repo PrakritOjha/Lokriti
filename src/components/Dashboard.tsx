@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { colors } from '../theme/colors';
-import StatsGrid from './StatsGrid';
 import ProductCategories from './ProductCategories';
 import StockAlerts from './StockAlerts';
 import DailySales from './DailySales';
@@ -55,6 +55,28 @@ const Dashboard: React.FC<DashboardProps> = ({ lang }) => {
   const t = translations[lang];
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100
+      }
+    }
+  };
+
   const handleCategoryClick = (categoryId: string) => {
     setSelectedCategory(categoryId);
   };
@@ -91,31 +113,40 @@ const Dashboard: React.FC<DashboardProps> = ({ lang }) => {
   };
 
   return (
-    <div style={styles.container}>
-      <StatsGrid 
-        stats={[
-          { label: t.todaySales, value: 'रू 12,500' },
-          { label: t.lowStock, value: '5' },
-          { label: t.totalProducts, value: '156' }
-        ]} 
-      />
-      
-      <h1 style={styles.mainTitle}>{t.mainProducts}</h1>
-      <div style={styles.categoriesWrapper}>
-        <ProductCategories 
-          categories={[
-            { id: '1', name: t.pottery, icon: '🏺' },
-            { id: '2', name: t.textiles, icon: '🧵' },
-            { id: '3', name: t.handicrafts, icon: '🎨' }
-          ]}
-          onCategoryClick={handleCategoryClick}
-        />
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      style={styles.container}
+    >
+      <motion.div variants={itemVariants} style={styles.header}>
+        <h1 style={styles.welcomeTitle}>Welcome Back!</h1>
+        <p style={styles.subtitle}>Let's check your store's performance</p>
+      </motion.div>
+
+      <div style={styles.topGrid}>
+        <motion.div variants={itemVariants} style={styles.alertsWrapper}>
+          <StockAlerts lang={lang} />
+        </motion.div>
+
+        <motion.div variants={itemVariants} style={styles.salesWrapper}>
+          <DailySales lang={lang} />
+        </motion.div>
       </div>
 
-      <div style={styles.gridContainer}>
-        <StockAlerts lang={lang} />
-        <DailySales lang={lang} />
-      </div>
+      <motion.div variants={itemVariants} style={styles.categoriesSection}>
+        <h2 style={styles.sectionTitle}>{t.mainProducts}</h2>
+        <div style={styles.categoriesWrapper}>
+          <ProductCategories 
+            categories={[
+              { id: '1', name: t.pottery, icon: '🏺' },
+              { id: '2', name: t.textiles, icon: '🧵' },
+              { id: '3', name: t.handicrafts, icon: '🎨' }
+            ]}
+            onCategoryClick={handleCategoryClick}
+          />
+        </div>
+      </motion.div>
 
       {selectedCategory && (
         <CategoryModal
@@ -127,32 +158,70 @@ const Dashboard: React.FC<DashboardProps> = ({ lang }) => {
           lang={lang}
         />
       )}
-    </div>
+    </motion.div>
   );
 };
 
 const styles = {
   container: {
-    padding: '2rem',
+    padding: '1rem',
     backgroundColor: colors.background,
     minHeight: '100vh',
+    width: '100%',
+    boxSizing: 'border-box' as const,
   },
-  mainTitle: {
-    fontSize: '1.75rem',
+  header: {
+    marginBottom: '1.5rem',
+  },
+  welcomeTitle: {
+    fontSize: '2.2rem',
+    fontWeight: '600',
+    color: colors.text.primary,
+    marginBottom: '0.5rem',
+  },
+  subtitle: {
+    fontSize: '1.2rem',
+    color: colors.text.secondary,
+  },
+  topGrid: {
+    display: 'grid',
+    gridTemplateColumns: '30% 70%',
+    gap: '1.5rem',
+    marginBottom: '2rem',
+    width: '100%',
+  },
+  alertsWrapper: {
+    backgroundColor: '#fff',
+    padding: '1.75rem',
+    borderRadius: '12px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+    height: '100%',
+    minWidth: 0,
+  },
+  salesWrapper: {
+    backgroundColor: '#fff',
+    padding: '1.75rem',
+    borderRadius: '12px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+    height: '100%',
+    minWidth: 0,
+  },
+  categoriesSection: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '1.5rem',
+  },
+  sectionTitle: {
+    fontSize: '1.6rem',
     fontWeight: '600',
     color: colors.primary,
-    marginBottom: '1.5rem',
-    marginTop: '2rem',
   },
   categoriesWrapper: {
-    cursor: 'pointer',
+    backgroundColor: '#fff',
+    padding: '1.75rem',
+    borderRadius: '12px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
   },
-  gridContainer: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-    gap: '2rem',
-    marginTop: '2rem'
-  }
 } as const;
 
 export default Dashboard; 

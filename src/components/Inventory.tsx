@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { colors } from '../theme/colors';
 
 interface InventoryProps {
@@ -71,10 +72,80 @@ const products = [
   { id: 14, name: { en: "Mandala Art", np: "मण्डला कला" }, category: { en: "Art", np: "कला" }, stock: 7, price: 5500, status: "In Stock" }
 ];
 
+interface AddProductModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  lang: 'en' | 'np';
+}
+
+const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, lang }) => {
+  const t = translations[lang];
+
+  if (!isOpen) return null;
+
+  return (
+    <div style={styles.modalOverlay}>
+      <motion.div 
+        style={styles.modalContent}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div style={styles.modalHeader}>
+          <h2 style={styles.modalTitle}>{t.addProduct}</h2>
+          <button onClick={onClose} style={styles.closeButton}>×</button>
+        </div>
+        <div style={styles.modalBody}>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>
+              {t.name} (English)
+              <input type="text" style={styles.input} />
+            </label>
+          </div>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>
+              {t.name} (नेपाली)
+              <input type="text" style={styles.input} />
+            </label>
+          </div>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>
+              {t.category}
+              <select style={styles.select}>
+                <option value="pottery">Pottery</option>
+                <option value="textiles">Textiles</option>
+                <option value="art">Art</option>
+              </select>
+            </label>
+          </div>
+          <div style={styles.formRow}>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>
+                {t.price}
+                <input type="number" style={styles.input} />
+              </label>
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>
+                {t.stock}
+                <input type="number" style={styles.input} />
+              </label>
+            </div>
+          </div>
+        </div>
+        <div style={styles.modalFooter}>
+          <button onClick={onClose} style={styles.cancelButton}>Cancel</button>
+          <button style={styles.saveButton}>Save Product</button>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 const Inventory: React.FC<InventoryProps> = ({ lang }) => {
   const t = translations[lang];
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name[lang].toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -86,40 +157,66 @@ const Inventory: React.FC<InventoryProps> = ({ lang }) => {
   const totalValue = products.reduce((sum, product) => sum + (product.price * product.stock), 0);
   const lowStockCount = products.filter(p => p.status === "Low Stock").length;
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "In Stock": return '#10B981';
+      case "Low Stock": return '#F59E0B';
+      case "Out of Stock": return '#EF4444';
+      default: return colors.text.secondary;
+    }
+  };
+
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h1 style={styles.title}>{t.title}</h1>
-        <button style={styles.addButton}>{t.addProduct}</button>
-      </div>
+        <div style={styles.titleSection}>
+          <h1 style={styles.title}>{t.title}</h1>
+          <button 
+            onClick={() => setIsAddModalOpen(true)}
+            style={styles.addButton}
+          >
+            {t.addProduct}
+          </button>
+        </div>
 
-      <div style={styles.statsGrid}>
-        <div style={styles.statCard}>
-          <h3>{t.totalItems}</h3>
-          <p>{products.length}</p>
-        </div>
-        <div style={styles.statCard}>
-          <h3>{t.lowStock}</h3>
-          <p style={{ color: colors.alert }}>{lowStockCount}</p>
-        </div>
-        <div style={styles.statCard}>
-          <h3>{t.categories}</h3>
-          <p>8</p>
-        </div>
-        <div style={styles.statCard}>
-          <h3>{t.value}</h3>
-          <p>रू {totalValue.toLocaleString()}</p>
+        <div style={styles.statsGrid}>
+          <div style={styles.statCard}>
+            <span style={styles.statIcon}>📦</span>
+            <div style={styles.statInfo}>
+              <h3 style={styles.statLabel}>{t.totalItems}</h3>
+              <p style={styles.statValue}>{products.length}</p>
+            </div>
+          </div>
+
+          <div style={styles.statCard}>
+            <span style={styles.statIcon}>⚠️</span>
+            <div style={styles.statInfo}>
+              <h3 style={styles.statLabel}>{t.lowStock}</h3>
+              <p style={{...styles.statValue, color: '#F59E0B'}}>{lowStockCount}</p>
+            </div>
+          </div>
+
+          <div style={styles.statCard}>
+            <span style={styles.statIcon}>📊</span>
+            <div style={styles.statInfo}>
+              <h3 style={styles.statLabel}>{t.value}</h3>
+              <p style={styles.statValue}>रू {totalValue.toLocaleString()}</p>
+            </div>
+          </div>
         </div>
       </div>
 
       <div style={styles.controls}>
-        <input
-          type="text"
-          placeholder={t.search}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={styles.searchInput}
-        />
+        <div style={styles.searchWrapper}>
+          <span style={styles.searchIcon}>🔍</span>
+          <input
+            type="text"
+            placeholder={t.search}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={styles.searchInput}
+          />
+        </div>
         <select 
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -136,46 +233,41 @@ const Inventory: React.FC<InventoryProps> = ({ lang }) => {
         <table style={styles.table}>
           <thead>
             <tr>
-              <th style={styles.snColumn}>{t.sn}</th>
-              <th>{t.name}</th>
-              <th>{t.category}</th>
-              <th>{t.stock}</th>
-              <th>{t.price}</th>
-              <th>{t.status}</th>
-              <th>{t.actions}</th>
+              <th style={styles.th}>{t.sn}</th>
+              <th style={styles.th}>{t.name}</th>
+              <th style={styles.th}>{t.category}</th>
+              <th style={styles.th}>{t.stock}</th>
+              <th style={styles.th}>{t.price}</th>
+              <th style={styles.th}>{t.status}</th>
+              <th style={styles.th}>{t.actions}</th>
             </tr>
           </thead>
           <tbody>
             {filteredProducts.map((product, index) => (
-              <tr key={product.id}>
-                <td style={styles.snColumn}>{index + 1}</td>
-                <td>{product.name[lang]}</td>
-                <td>{product.category[lang]}</td>
-                <td>{product.stock}</td>
-                <td>रू {product.price.toLocaleString()}</td>
-                <td>
+              <tr key={product.id} style={styles.tr}>
+                <td style={styles.td}>{index + 1}</td>
+                <td style={styles.td}>{product.name[lang]}</td>
+                <td style={styles.td}>{product.category[lang]}</td>
+                <td style={styles.td}>{product.stock}</td>
+                <td style={styles.td}>रू {product.price.toLocaleString()}</td>
+                <td style={styles.td}>
                   <span style={{
                     ...styles.statusBadge,
-                    backgroundColor: product.status === "In Stock" ? '#4CAF50' : '#FF9800',
-                    color: '#fff'
+                    backgroundColor: `${getStatusColor(product.status)}15`,
+                    color: getStatusColor(product.status)
                   }}>
                     {product.status}
                   </span>
                 </td>
-                <td>
+                <td style={styles.td}>
                   <div style={styles.actions}>
                     <button style={styles.actionButton}>
                       {t.edit}
                     </button>
                     <button style={{
                       ...styles.actionButton,
-                      borderColor: colors.alert,
-                      color: colors.alert,
-                      '&:hover': {
-                        backgroundColor: `${colors.alert}10`,
-                        borderColor: colors.alert,
-                        color: colors.alert,
-                      }
+                      borderColor: '#EF4444',
+                      color: '#EF4444',
                     }}>
                       {t.delete}
                     </button>
@@ -186,9 +278,19 @@ const Inventory: React.FC<InventoryProps> = ({ lang }) => {
           </tbody>
         </table>
       </div>
+
+      <AddProductModal 
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        lang={lang}
+      />
     </div>
   );
 };
+
+const TABLE_ROW_HEIGHT = 60; // Height of each row
+const HEADER_HEIGHT = 50; // Height of the header
+const MAX_VISIBLE_ROWS = 7; // Maximum number of visible rows
 
 const styles = {
   container: {
@@ -198,6 +300,9 @@ const styles = {
     boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
   },
   header: {
+    marginBottom: '2rem',
+  },
+  titleSection: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -206,6 +311,8 @@ const styles = {
   title: {
     margin: 0,
     color: colors.text.primary,
+    fontSize: '1.75rem',
+    fontWeight: '600',
   },
   addButton: {
     padding: '0.75rem 1.5rem',
@@ -214,48 +321,74 @@ const styles = {
     border: 'none',
     borderRadius: '8px',
     cursor: 'pointer',
-    fontWeight: 'bold',
-    transition: 'background-color 0.2s',
-    ':hover': {
-      backgroundColor: colors.accent,
-    }
+    fontWeight: '500',
+    fontSize: '0.875rem',
+    transition: 'all 0.2s',
   },
   statsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
     gap: '1.5rem',
-    marginBottom: '2rem',
   },
   statCard: {
     backgroundColor: colors.background,
     padding: '1.5rem',
-    borderRadius: '8px',
-    '& h3': {
-      margin: '0 0 0.5rem 0',
-      color: colors.text.secondary,
-      fontSize: '1rem',
-    },
-    '& p': {
-      margin: 0,
-      fontSize: '1.5rem',
-      fontWeight: 'bold',
-      color: colors.primary,
-    }
+    borderRadius: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
+    transition: 'all 0.3s ease',
+  },
+  statIcon: {
+    fontSize: '1.5rem',
+    width: '40px',
+    height: '40px',
+    backgroundColor: '#fff',
+    borderRadius: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statInfo: {
+    flex: 1,
+  },
+  statLabel: {
+    margin: '0 0 0.25rem 0',
+    color: colors.text.secondary,
+    fontSize: '0.875rem',
+  },
+  statValue: {
+    margin: 0,
+    fontSize: '1.25rem',
+    fontWeight: 'bold',
+    color: colors.text.primary,
   },
   controls: {
     display: 'flex',
     gap: '1rem',
     marginBottom: '1.5rem',
   },
-  searchInput: {
+  searchWrapper: {
     flex: 1,
-    padding: '0.75rem 1rem',
-    border: '1px solid #eee',
+    position: 'relative' as const,
+  },
+  searchIcon: {
+    position: 'absolute' as const,
+    left: '1rem',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    color: colors.text.secondary,
+    fontSize: '1rem',
+  },
+  searchInput: {
+    width: '100%',
+    padding: '0.75rem 1rem 0.75rem 2.5rem',
+    border: '1px solid #E5E7EB',
     borderRadius: '8px',
-    fontSize: '0.95rem',
+    fontSize: '0.875rem',
     transition: 'all 0.2s',
-    backgroundColor: '#fff',
-    ':focus': {
+    backgroundColor: colors.background,
+    '&:focus': {
       outline: 'none',
       borderColor: colors.primary,
       boxShadow: `0 0 0 3px ${colors.primary}15`,
@@ -263,114 +396,208 @@ const styles = {
   },
   filterSelect: {
     padding: '0.75rem 2.5rem 0.75rem 1rem',
-    border: '1px solid #eee',
+    border: '1px solid #E5E7EB',
     borderRadius: '8px',
-    fontSize: '0.95rem',
-    backgroundColor: '#fff',
+    fontSize: '0.875rem',
+    backgroundColor: colors.background,
     cursor: 'pointer',
-    appearance: 'none',
-    backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3C/polyline%3E%3C/svg%3E")',
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'right 0.5rem center',
-    backgroundSize: '1.25rem',
+    minWidth: '150px',
+  },
+  tableContainer: {
+    backgroundColor: '#fff',
+    borderRadius: '12px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+    maxHeight: `${(TABLE_ROW_HEIGHT * MAX_VISIBLE_ROWS) + HEADER_HEIGHT}px`,
+    overflowY: 'auto',
+    display: 'block',
+  },
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse' as const,
+    textAlign: 'left' as const,
+  },
+  thead: {
+    position: 'sticky' as const,
+    top: 0,
+    backgroundColor: '#fff',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+    zIndex: 10,
+    display: 'table',
+    width: '100%',
+  },
+  tbody: {
+    display: 'block',
+    overflowY: 'auto',
+    maxHeight: `${TABLE_ROW_HEIGHT * MAX_VISIBLE_ROWS}px`,
+  },
+  th: {
+    padding: '1rem',
+    fontWeight: 600,
+    color: colors.text.secondary,
+    backgroundColor: colors.background,
+    height: `${HEADER_HEIGHT}px`,
+  },
+  tr: {
+    borderBottom: '1px solid #eee',
+    height: `${TABLE_ROW_HEIGHT}px`,
+    transition: 'background-color 0.2s',
+    ':hover': {
+      backgroundColor: colors.background,
+    },
+  },
+  td: {
+    padding: '1rem',
+    color: colors.text.primary,
+    verticalAlign: 'middle' as const,
+  },
+  statusBadge: {
+    padding: '0.25rem 0.75rem',
+    borderRadius: '999px',
+    fontSize: '0.75rem',
+    fontWeight: '500',
+    display: 'inline-block',
+  },
+  actions: {
+    display: 'flex',
+    gap: '0.5rem',
+  },
+  actionButton: {
+    padding: '0.5rem 1rem',
+    backgroundColor: 'transparent',
+    border: '1px solid #E5E7EB',
+    borderRadius: '6px',
+    fontSize: '0.75rem',
+    fontWeight: '500',
+    cursor: 'pointer',
     transition: 'all 0.2s',
-    ':focus': {
+    '&:hover': {
+      borderColor: colors.primary,
+      color: colors.primary,
+    }
+  },
+  modalOverlay: {
+    position: 'fixed' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: '12px',
+    width: '90%',
+    maxWidth: '600px',
+    maxHeight: '90vh',
+    overflow: 'auto',
+  },
+  modalHeader: {
+    padding: '1.5rem',
+    borderBottom: '1px solid #E5E7EB',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    margin: 0,
+    fontSize: '1.25rem',
+    fontWeight: '600',
+    color: colors.text.primary,
+  },
+  closeButton: {
+    background: 'none',
+    border: 'none',
+    fontSize: '1.5rem',
+    color: colors.text.secondary,
+    cursor: 'pointer',
+    padding: '0.5rem',
+    borderRadius: '6px',
+    '&:hover': {
+      backgroundColor: colors.background,
+    }
+  },
+  modalBody: {
+    padding: '1.5rem',
+  },
+  modalFooter: {
+    padding: '1.5rem',
+    borderTop: '1px solid #E5E7EB',
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '1rem',
+  },
+  formGroup: {
+    marginBottom: '1.5rem',
+  },
+  formRow: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '1rem',
+  },
+  label: {
+    display: 'block',
+    marginBottom: '0.5rem',
+    color: colors.text.primary,
+    fontSize: '0.875rem',
+    fontWeight: '500',
+  },
+  input: {
+    width: '100%',
+    padding: '0.75rem',
+    border: '1px solid #E5E7EB',
+    borderRadius: '6px',
+    fontSize: '0.875rem',
+    marginTop: '0.25rem',
+    '&:focus': {
       outline: 'none',
       borderColor: colors.primary,
       boxShadow: `0 0 0 3px ${colors.primary}15`,
     }
   },
-  tableContainer: {
-    overflowX: 'auto' as const,
-    overflowY: 'auto' as const,
-    borderRadius: '8px',
-    border: '1px solid #eee',
-    maxHeight: '600px',
-    '& thead': {
-      position: 'sticky' as const,
-      top: 0,
-      zIndex: 1,
-      '& th': {
-        backgroundColor: colors.background,
-      }
-    }
-  },
-  table: {
+  select: {
     width: '100%',
-    borderCollapse: 'separate' as const,
-    borderSpacing: '0 1rem',
-    '& th, & td': {
-      padding: '1.25rem 1rem',
-      textAlign: 'left' as const,
-      fontSize: '0.95rem',
-      backgroundColor: '#fff',
-    },
-    '& th': {
-      backgroundColor: colors.background,
-      fontWeight: '600',
-      color: colors.text.primary,
-      textTransform: 'uppercase' as const,
-      fontSize: '0.85rem',
-      letterSpacing: '0.05em',
-      borderBottom: '2px solid #eee',
-      whiteSpace: 'nowrap' as const,
-    },
-    '& tbody tr': {
-      boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
-      borderRadius: '8px',
-      position: 'relative' as const,
-    },
-    '& tbody td': {
-      borderTop: '1px solid #eee',
-      borderBottom: '1px solid #eee',
-    },
-    '& tbody td:first-child': {
-      borderLeft: '1px solid #eee',
-      borderTopLeftRadius: '8px',
-      borderBottomLeftRadius: '8px',
-    },
-    '& tbody td:last-child': {
-      borderRight: '1px solid #eee',
-      borderTopRightRadius: '8px',
-      borderBottomRightRadius: '8px',
-    },
-    '& tr:hover td': {
-      backgroundColor: `${colors.primary}05`,
-    }
-  },
-  statusBadge: {
-    padding: '0.4rem 1rem',
-    borderRadius: '999px',
-    fontSize: '0.85rem',
-    fontWeight: '500',
-    display: 'inline-block',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.05em',
-  },
-  actions: {
-    display: 'flex',
-    gap: '0.75rem',
-    justifyContent: 'flex-end',
-  },
-  actionButton: {
-    padding: '0.4rem 0.75rem',
-    backgroundColor: 'transparent',
-    color: colors.text.primary,
-    border: '1px solid #eee',
+    padding: '0.75rem',
+    border: '1px solid #E5E7EB',
     borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.85rem',
-    transition: 'all 0.2s',
-    ':hover': {
-      backgroundColor: colors.background,
+    fontSize: '0.875rem',
+    marginTop: '0.25rem',
+    backgroundColor: '#fff',
+    '&:focus': {
+      outline: 'none',
       borderColor: colors.primary,
-      color: colors.primary,
+      boxShadow: `0 0 0 3px ${colors.primary}15`,
     }
   },
-  snColumn: {
-    width: '60px',
-    textAlign: 'center' as const,
+  cancelButton: {
+    padding: '0.75rem 1.5rem',
+    border: '1px solid #E5E7EB',
+    borderRadius: '6px',
+    backgroundColor: '#fff',
+    color: colors.text.primary,
+    fontSize: '0.875rem',
+    fontWeight: '500',
+    cursor: 'pointer',
+    '&:hover': {
+      backgroundColor: colors.background,
+    }
+  },
+  saveButton: {
+    padding: '0.75rem 1.5rem',
+    border: 'none',
+    borderRadius: '6px',
+    backgroundColor: colors.primary,
+    color: '#fff',
+    fontSize: '0.875rem',
+    fontWeight: '500',
+    cursor: 'pointer',
+    '&:hover': {
+      backgroundColor: colors.accent,
+    }
   },
 } as const;
 
-export default Inventory; 
+export default Inventory;
